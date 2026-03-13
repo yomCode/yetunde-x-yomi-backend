@@ -27,10 +27,23 @@ const ALLOWED_TYPES = new Set([
 // ─────────────────────────────────────────────────────────────
 // Google Auth — Service Account
 // ─────────────────────────────────────────────────────────────
-const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ['https://www.googleapis.com/auth/drive'], // full drive scope required for Shared Drives
-});
+
+function buildAuth() {
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return new google.auth.GoogleAuth({
+      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
+  }
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return new google.auth.GoogleAuth({
+      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
+  }
+  throw new Error('No Google credentials found.');
+}
+const auth = buildAuth()
 
 const drive = google.drive({ version: 'v3', auth });
 
